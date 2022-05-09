@@ -28,11 +28,8 @@ link arguments: #(selector arguments).
 link control: #before.
 
 "We install the metalink on every method of every class that is in the package that contains our observed Class --> SMFakeClass3" 
-((SMFakeClass3 package classes collect: #methods) flattened collect: #ast) do:[:node|
+(({SMFakeClass1} collect: #methods) flattened collect: #ast) do:[:node|
 	 node link: link].
-
-"You need to execute your code to get something in the Transcript"
-SMFakeClass3 new example.
 
 "Another example of a Metalink.
 Here, we want to get the name of every variable and its value before and after"
@@ -45,6 +42,8 @@ link3 control: #before.
 (({SMFakeClass1} collect: #methods) flattened collect: #variableWriteNodes) flattened do:[:node| 
 	 	node link: link3].
 
+
+"You need to execute your code to get something in the Transcript"
 SMFakeClass1 new sum: 7.
 
 MetaLink uninstallAll.
