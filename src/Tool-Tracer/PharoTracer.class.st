@@ -8,7 +8,8 @@ Class {
 		'executableCode',
 		'classesToObserve',
 		'records',
-		'link'
+		'methodsLink',
+		'variablesLink'
 	],
 	#category : #'Tool-Tracer'
 }
@@ -24,7 +25,7 @@ PharoTracer class >> example1 [
 				SMFakeClass2.
 				SMFakeClass3 };
 		executableCode: [ SMFakeClass3 new example ];
-		run1
+		run
 ]
 
 { #category : #accessing }
@@ -58,23 +59,46 @@ PharoTracer >> initialize [
 ]
 
 { #category : #'api - running' }
-PharoTracer >> initializeMetalink [
+PharoTracer >> initializeMethodsMetalink [
 
-link := MetaLink new.
-	link metaObject: [ :selector :args | 
+	methodsLink := MetaLink new.
+	methodsLink metaObject: [ :receiver :selector :args | 
+		receiver trace.
+		' ' trace.
 		selector trace.
 		' ' trace.
 		args traceCr ].
-	link selector: #value:value:.
-	link arguments: #( selector arguments ).
-	link control: #before
+	methodsLink selector: #value:value:value:.
+	"i can just use context instead of receiver and selector"
+	methodsLink arguments: #( receiver selector arguments ).
+	methodsLink control: #before.
+
+]
+
+{ #category : #'api - running' }
+PharoTracer >> initializeVariablesMetalink [
+
+
+	variablesLink := MetaLink new.
+	variablesLink metaObject: [ :name :value :nv | 
+		name trace.
+		' : ' trace.
+		value trace.
+		' --> ' trace.
+		nv traceCr ].
+	variablesLink selector: #value:value:value:.
+	variablesLink arguments: #( name value newValue ).
+	variablesLink control: #before
 ]
 
 { #category : #'api - running' }
 PharoTracer >> installMetalink [
 
 	((classesToObserve collect: #methods) flattened collect: #ast) do: [ 
-		:node | node link: link ]
+		:node | node link: methodsLink ].
+	
+((classesToObserve  collect: #methods) flattened collect: #variableWriteNodes) flattened do:[:node| 
+	 	node link: variablesLink ].
 ]
 
 { #category : #accessing }
@@ -92,16 +116,8 @@ PharoTracer >> records: anObject [
 { #category : #'api - running' }
 PharoTracer >> run [
 
-	self initializeMetalink.
-	self installMetalink.
-	self executableCode value.
-	self uninstallMetalink
-]
-
-{ #category : #'api - running' }
-PharoTracer >> run1 [
-
-	self initializeMetalink.
+	self initializeMethodsMetalink.
+	self initializeVariablesMetalink. 
 	self installMetalink.
 	self executableCode value.
 	self uninstallMetalink
