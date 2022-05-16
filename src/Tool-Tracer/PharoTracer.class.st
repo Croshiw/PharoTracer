@@ -11,11 +11,11 @@ Class {
 		'methodsLink',
 		'variablesLink'
 	],
-	#category : #'Tool-Tracer'
+	#category : #'Tool-Tracer-Core'
 }
 
 { #category : #examples }
-PharoTracer class >> example1 [
+PharoTracer class >> example [
 
 	"Open Transcript to see result"
 
@@ -25,6 +25,18 @@ PharoTracer class >> example1 [
 				SMFakeClass2.
 				SMFakeClass3 };
 		executableCode: [ SMFakeClass3 new example ];
+		run
+]
+
+{ #category : #examples }
+PharoTracer class >> exampleSmallTrace [
+
+	"Open Transcript to see result"
+
+	self new
+		classesToObserve: { 
+				SMFakeClass1. };
+		executableCode: [ SMFakeClass1 new sum: 7 ];
 		run
 ]
 
@@ -62,32 +74,31 @@ PharoTracer >> initialize [
 PharoTracer >> initializeMethodsMetalink [
 
 	methodsLink := MetaLink new.
-	methodsLink metaObject: [ :receiver :selector :args | 
-		receiver trace.
+	methodsLink metaObject: [ :context :args | 
+		"context trace.
 		' ' trace.
-		selector trace.
-		' ' trace.
-		args traceCr ].
-	methodsLink selector: #value:value:value:.
-	"i can just use context instead of receiver and selector"
-	methodsLink arguments: #( receiver selector arguments ).
-	methodsLink control: #before.
-
+		args traceCr"
+		records add: (PharoMethodLogRecord new context: context; arguments: args) ].
+	methodsLink selector: #value:value:.
+	methodsLink arguments: #( context arguments ).
+	methodsLink control: #before
 ]
 
 { #category : #'api - running' }
 PharoTracer >> initializeVariablesMetalink [
 
-
 	variablesLink := MetaLink new.
-	variablesLink metaObject: [ :name :value :nv | 
+	variablesLink metaObject: [ :context :name :value :nv |
+		"context trace.
+		' --> ' trace.
 		name trace.
 		' : ' trace.
 		value trace.
 		' --> ' trace.
-		nv traceCr ].
-	variablesLink selector: #value:value:value:.
-	variablesLink arguments: #( name value newValue ).
+		nv traceCr" 
+		records add: (PharoVariableLogRecord new context: context;variableName: name;oldValue: value; newValue: nv)].
+	variablesLink selector: #value:value:value:value:.
+	variablesLink arguments: #( context name value newValue ).
 	variablesLink control: #before
 ]
 
