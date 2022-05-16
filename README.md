@@ -20,31 +20,41 @@ Metacello new
 ast := (SMFakeClass3 lookupSelector: #example) ast.
 
 "A first example of a Metalink.
-Here, we want the name of the method and the arguments it takes"
-link := MetaLink new.
-link metaObject: [ :selector :args| selector trace. ' ' trace. args traceCr ].
-link selector: #value:value:.
-link arguments: #(selector arguments).
-link control: #before.
+Here, we want the class, the name of the method and the arguments it takes"
+methodsLink := MetaLink new.
+methodsLink metaObject: [ :receiver :selector :args | 
+		receiver trace.
+		' ' trace.
+		selector trace.
+		' ' trace.
+		args traceCr ].
+methodsLink selector: #value:value:value:.
+"i can just use context instead of receiver and selector"
+methodsLink arguments: #( receiver selector arguments ).
+methodsLink control: #before.
 
-"We install the metalink on every method of every class that is in the package that contains our observed Class --> SMFakeClass3" 
-(({SMFakeClass1} collect: #methods) flattened collect: #ast) do:[:node|
-	 node link: link].
+"We install the metalink on every method of a collection of classes we give" 
+(({SMFakeClass1.SMFakeClass2.SMFakeClass3} collect: #methods) flattened collect: #ast) do: [ 
+		:node | node link: methodsLink ].
 
 "Another example of a Metalink.
 Here, we want to get the name of every variable and its value before and after"
-link3 := MetaLink new.
-link3 metaObject: [ :name :value :nv|  name trace. ' : ' trace. value trace. ' 'trace. nv traceCr ].
-link3 selector: #value:value:value:.
-link3 arguments: #(name value newValue).
-link3 control: #before.
-"We install the metalink on all the variable nodes in every class that is in the package that contains our observed Class --> SMFakeClass3"
-(({SMFakeClass1} collect: #methods) flattened collect: #variableWriteNodes) flattened do:[:node| 
-	 	node link: link3].
-
+variablesLink := MetaLink new.
+variablesLink metaObject: [ :name :value :nv | 
+		name trace.
+		' : ' trace.
+		value trace.
+		' --> ' trace.
+		nv traceCr ].
+variablesLink selector: #value:value:value:.
+variablesLink arguments: #( name value newValue ).
+variablesLink control: #before.
+"We install the metalink on all the variable nodes in a collection of classes"
+(({SMFakeClass1.SMFakeClass2.SMFakeClass3} collect: #methods) flattened collect: #variableWriteNodes) flattened do: [ :node |
+		node link: variablesLink ].
 
 "You need to execute your code to get something in the Transcript"
-SMFakeClass1 new sum: 7.
+SMFakeClass3 new example.
 
 MetaLink uninstallAll.
 ```
