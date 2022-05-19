@@ -1,6 +1,6 @@
 Class {
-	#name : #PharoVariableLogRecord,
-	#superclass : #PharoAbstractLogRecord,
+	#name : #PTVariableLogRecord,
+	#superclass : #PTAbstractLogRecord,
 	#instVars : [
 		'variableName',
 		'oldValue',
@@ -10,37 +10,37 @@ Class {
 }
 
 { #category : #accessing }
-PharoVariableLogRecord >> newValue [
+PTVariableLogRecord >> newValue [
 
 	^ newValue
 ]
 
 { #category : #accessing }
-PharoVariableLogRecord >> newValue: anObject [
+PTVariableLogRecord >> newValue: anObject [
 
 	newValue := anObject
 ]
 
 { #category : #accessing }
-PharoVariableLogRecord >> oldValue [
+PTVariableLogRecord >> oldValue [
 
 	^ oldValue
 ]
 
 { #category : #accessing }
-PharoVariableLogRecord >> oldValue: anObject [
+PTVariableLogRecord >> oldValue: anObject [
 
 	oldValue := anObject
 ]
 
 { #category : #accessing }
-PharoVariableLogRecord >> variableName [
+PTVariableLogRecord >> variableName [
 
 	^ variableName
 ]
 
 { #category : #accessing }
-PharoVariableLogRecord >> variableName: anObject [
+PTVariableLogRecord >> variableName: anObject [
 
 	variableName := anObject
 ]

@@ -74,13 +74,13 @@ PharoTracer >> initialize [
 PharoTracer >> initializeMethodsMetalink [
 
 	methodsLink := MetaLink new.
-	methodsLink metaObject: [ :context :args | 
-		"context trace.
-		' ' trace.
-		args traceCr"
-		records add: (PharoMethodLogRecord new context: context; arguments: args) ].
+	methodsLink metaObject: [ :method :args | 
+		records add: (PTMethodCallLogRecord new
+				 associatedClass: method methodClass;
+				 associatedMethod: method;
+				 associatedArguments: args) ].
 	methodsLink selector: #value:value:.
-	methodsLink arguments: #( context arguments ).
+	methodsLink arguments: #( method arguments ).
 	methodsLink control: #before
 ]
 
@@ -88,17 +88,15 @@ PharoTracer >> initializeMethodsMetalink [
 PharoTracer >> initializeVariablesMetalink [
 
 	variablesLink := MetaLink new.
-	variablesLink metaObject: [ :context :name :value :nv |
-		"context trace.
-		' --> ' trace.
-		name trace.
-		' : ' trace.
-		value trace.
-		' --> ' trace.
-		nv traceCr" 
-		records add: (PharoVariableLogRecord new context: context;variableName: name;oldValue: value; newValue: nv)].
+	variablesLink metaObject: [ :method :name :value :nv | 
+		records add: (PTVariableLogRecord new
+				 associatedClass: method methodClass;
+				 associatedMethod: method;
+				 variableName: name;
+				 oldValue: value;
+				 newValue: nv) ].
 	variablesLink selector: #value:value:value:value:.
-	variablesLink arguments: #( context name value newValue ).
+	variablesLink arguments: #( method name value newValue ).
 	variablesLink control: #before
 ]
 
