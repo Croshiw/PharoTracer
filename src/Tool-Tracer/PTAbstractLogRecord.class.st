@@ -1,3 +1,6 @@
+"
+I represent the abstract model of all the logs. I should know the class and the method I am associated with.
+"
 Class {
 	#name : #PTAbstractLogRecord,
 	#superclass : #Object,

@@ -1,5 +1,25 @@
 "
-Tracing things in Pharo
+Tracing things in Pharo.
+I use Metalink to get the information I need.
+The idea is to install 4 Metalinks:
+- One to get the info about the method I'm in with its arguments, 
+- One to get the info about the value change of a variable
+- One to get the info about what is returned in a method
+- One to get what exception has been called
+
+Then I install the metalinks in the desired nodes
+
+Run this in the playground for an example
+```language=Pharo
+example
+   PharoTracer new
+		classesToObserve: { 
+				PTFakeClass1.
+				PTFakeClass2.
+				PTFakeClass3 };
+		executableCode: [ PTFakeClass3 new example ];
+		run;records
+```
 "
 Class {
 	#name : #PharoTracer,
@@ -9,36 +29,11 @@ Class {
 		'classesToObserve',
 		'records',
 		'methodsLink',
-		'variablesLink'
+		'variablesLink',
+		'returnsLink'
 	],
 	#category : #'Tool-Tracer-Core'
 }
-
-{ #category : #examples }
-PharoTracer class >> example [
-
-	"Open Transcript to see result"
-
-	self new
-		classesToObserve: { 
-				SMFakeClass1.
-				SMFakeClass2.
-				SMFakeClass3 };
-		executableCode: [ SMFakeClass3 new example ];
-		run
-]
-
-{ #category : #examples }
-PharoTracer class >> exampleSmallTrace [
-
-	"Open Transcript to see result"
-
-	self new
-		classesToObserve: { 
-				SMFakeClass1. };
-		executableCode: [ SMFakeClass1 new sum: 7 ];
-		run
-]
 
 { #category : #accessing }
 PharoTracer >> classesToObserve [
@@ -85,6 +80,20 @@ PharoTracer >> initializeMethodsMetalink [
 ]
 
 { #category : #'api - running' }
+PharoTracer >> initializeReturnsMetalink [
+
+	returnsLink := MetaLink new.
+	returnsLink metaObject: [ :method :value | 
+		records add: (PTReturnLogRecord new
+				 associatedClass: method methodClass;
+				 associatedMethod: method;
+				 returnedValue: value) ].
+	returnsLink selector: #value:value:.
+	returnsLink arguments: #( method value ).
+	returnsLink control: #before
+]
+
+{ #category : #'api - running' }
 PharoTracer >> initializeVariablesMetalink [
 
 	variablesLink := MetaLink new.
@@ -105,9 +114,14 @@ PharoTracer >> installMetalink [
 
 	((classesToObserve collect: #methods) flattened collect: #ast) do: [ 
 		:node | node link: methodsLink ].
-	
-((classesToObserve  collect: #methods) flattened collect: #variableWriteNodes) flattened do:[:node| 
-	 	node link: variablesLink ].
+
+	((classesToObserve collect: #methods) flattened collect:
+		 #variableWriteNodes) flattened do: [ :node | 
+		node link: variablesLink ].
+
+	((classesToObserve collect: #methods) flattened collect: #returnNodes)
+		flattened do: [ :node | 
+		node link: returnsLink  ].
 ]
 
 { #category : #accessing }
@@ -126,7 +140,8 @@ PharoTracer >> records: anObject [
 PharoTracer >> run [
 
 	self initializeMethodsMetalink.
-	self initializeVariablesMetalink. 
+	self initializeVariablesMetalink.
+	self initializeReturnsMetalink.
 	self installMetalink.
 	self executableCode value.
 	self uninstallMetalink
